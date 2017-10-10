@@ -15,32 +15,41 @@ class Board
   end
 
   def valid_move?(start_pos)
-    if start_pos <= 0 || start_pos > 13
+    if start_pos < 0 || start_pos > 12 || @cups[start_pos].empty?
       raise ArgumentError.new("Invalid starting cup")
     end
   end
 
   def make_move(start_pos, current_player_name)
-    stones = @cups[start_pos].length
+    stones = @cups[start_pos]
+    ending_cup_idx = start_pos + stones.length
     @cups[start_pos] = []
-    stones.times do |i|
-      next_pos = start_pos + 1 + i
-      if (current_player_name == @name1 && next_pos == 13)||
-        (current_player_name == @name2 && next_pos == 6)
-        i += 1
-        next
+    cup_idx = start_pos
+    until stones.empty?
+      cup_idx += 1
+      cup_idx = 0 if cup_idx > 13
+
+      if cup_idx == 6
+        if current_player_name == @name1
+          @cups[cup_idx] << stones.pop
+        end
+
+      elsif cup_idx == 13
+        if current_player_name == @name2
+          @cups[cup_idx] << stones.pop
+        end
+      else
+        @cups[cup_idx] << stones.pop
       end
-      @cups[next_pos] << :stone
     end
-    ending_cup_idx = start_pos + stones
     render
-    next_turn(ending_cup_idx,current_player_name)
+    next_turn(cup_idx,current_player_name)
   end
 
   def next_turn(ending_cup_idx,current_player_name)
-    return :switch if @cups[ending_cup_idx] == 1
     return :prompt if (current_player_name == @name1 && ending_cup_idx == 6)||
 (current_player_name == @name2 && ending_cup_idx == 13)
+    return :switch if @cups[ending_cup_idx].length == 1
     return ending_cup_idx
   end
 
